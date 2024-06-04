@@ -151,6 +151,8 @@ public class AddCalendarEventModule extends ReactContextBaseJavaModule implement
                 return;
             }
 
+            Log.d("EventEditing", "Event ID: " + eventIdString);
+
             // Check if the event exists
             if (!doesEventExist(getReactApplicationContext().getContentResolver(), eventIdString)) {
                 rejectPromise("Event with id " + eventIdString + " not found");
@@ -160,6 +162,8 @@ public class AddCalendarEventModule extends ReactContextBaseJavaModule implement
             shownOrEditedEventId = Long.valueOf(eventIdString);
             Uri eventUri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, shownOrEditedEventId);
 
+            Log.d("EventEditing", "Event URI: " + eventUri.toString());
+
             // Set the prior event ID
             setPriorEventId(getCurrentActivity());
 
@@ -168,8 +172,13 @@ public class AddCalendarEventModule extends ReactContextBaseJavaModule implement
 
             // Check if beginTime and endTime are provided for a recurring event instance
             if (config.hasKey("beginTime") && config.hasKey("endTime")) {
-                long beginTime = config.getDouble("beginTime").longValue();
-                long endTime = config.getDouble("endTime").longValue();
+                // Extract beginTime and endTime from config
+                // They should be in Unix timestamp format (milliseconds since epoch)
+                long beginTime = (long) config.getDouble("beginTime");
+                long endTime = (long) config.getDouble("endTime");
+
+                Log.d("EventEditing", "Begin Time: " + beginTime);
+                Log.d("EventEditing", "End Time: " + endTime);
 
                 // Add the start and end times to the intent
                 intent.putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, beginTime);
@@ -179,6 +188,7 @@ public class AddCalendarEventModule extends ReactContextBaseJavaModule implement
             // Start the activity for result
             getReactApplicationContext().startActivityForResult(intent, SHOW_EVENT_REQUEST_CODE, Bundle.EMPTY);
         } catch (Exception e) {
+            Log.e("EventEditing", "Exception: ", e);
             rejectPromise(e);
         }
     }
