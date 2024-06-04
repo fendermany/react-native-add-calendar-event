@@ -70,6 +70,8 @@ declare module "react-native-add-calendar-event" {
      */
     useEditIntent?: boolean;
     navigationBarIOS?: NavigationBarIOS;
+    beginTime?: string;
+    endTime?: string;
   }
 
   type EditResult = SuccessAction | CancelAction | DeletedAction;

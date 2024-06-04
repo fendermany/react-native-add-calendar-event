@@ -143,19 +143,40 @@ public class AddCalendarEventModule extends ReactContextBaseJavaModule implement
     }
 
     private void presentEventEditingActivity(ReadableMap config, Intent intent) {
-        String eventIdString = config.getString("eventId");
-        if (!doesEventExist(getReactApplicationContext().getContentResolver(), eventIdString)) {
-            rejectPromise("event with id " + eventIdString + " not found");
-            return;
-        }
-        shownOrEditedEventId = Long.valueOf(eventIdString);
-        Uri eventUri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, shownOrEditedEventId);
-
-        setPriorEventId(getCurrentActivity());
-
-        intent.setData(eventUri);
-
         try {
+            // Get the event ID from the config
+            String eventIdString = config.getString("eventId");
+            if (eventIdString == null || eventIdString.isEmpty()) {
+                rejectPromise("Event ID is required");
+                return;
+            }
+
+            // Check if the event exists
+            if (!doesEventExist(getReactApplicationContext().getContentResolver(), eventIdString)) {
+                rejectPromise("Event with id " + eventIdString + " not found");
+                return;
+            }
+
+            shownOrEditedEventId = Long.valueOf(eventIdString);
+            Uri eventUri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, shownOrEditedEventId);
+
+            // Set the prior event ID
+            setPriorEventId(getCurrentActivity());
+
+            // Set the event Uri in the intent
+            intent.setData(eventUri);
+
+            // Check if beginTime and endTime are provided for a recurring event instance
+            if (config.hasKey("beginTime") && config.hasKey("endTime")) {
+                long beginTime = config.getDouble("beginTime").longValue();
+                long endTime = config.getDouble("endTime").longValue();
+
+                // Add the start and end times to the intent
+                intent.putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, beginTime);
+                intent.putExtra(CalendarContract.EXTRA_EVENT_END_TIME, endTime);
+            }
+
+            // Start the activity for result
             getReactApplicationContext().startActivityForResult(intent, SHOW_EVENT_REQUEST_CODE, Bundle.EMPTY);
         } catch (Exception e) {
             rejectPromise(e);
