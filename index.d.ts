@@ -70,8 +70,8 @@ declare module "react-native-add-calendar-event" {
      */
     useEditIntent?: boolean;
     navigationBarIOS?: NavigationBarIOS;
-    beginTime?: string;
-    endTime?: string;
+    beginTime?: number;
+    endTime?: number;
   }
 
   type EditResult = SuccessAction | CancelAction | DeletedAction;
@@ -92,8 +92,8 @@ declare module "react-native-add-calendar-event" {
      */
     allowsCalendarPreview?: boolean;
     navigationBarIOS?: NavigationBarIOS;
-    beginTime?: string;
-    endTime?: string;
+    beginTime?: number;
+    endTime?: number;
   }
 
   type ViewResult = DoneAction | RespondedAction | DeletedAction;
