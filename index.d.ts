@@ -92,6 +92,8 @@ declare module "react-native-add-calendar-event" {
      */
     allowsCalendarPreview?: boolean;
     navigationBarIOS?: NavigationBarIOS;
+    beginTime?: string;
+    endTime?: string;
   }
 
   type ViewResult = DoneAction | RespondedAction | DeletedAction;
