@@ -50,6 +50,9 @@ static NSString *const _endDate = @"endDate";
 static NSString *const _notes = @"notes";
 static NSString *const _url = @"url";
 static NSString *const _allDay = @"allDay";
+static NSString *const _alarms = @"alarms";
+static NSString *const _timeZone = @"timeZone";
+static NSString *const _calendarId = @"calendarId";
 
 static NSString *const MODULE_NAME= @"AddCalendarEvent";
 
@@ -153,12 +156,31 @@ RCT_EXPORT_METHOD(presentEventEditingDialog:(NSDictionary *)options resolver:(RC
     return maybeEvent;
 }
 
+- (NSArray *)createCalendarEventAlarms:(NSArray *)alarms
+{
+    NSMutableArray *calendarEventAlarms = [[NSMutableArray alloc] init];
+    for (NSDictionary *alarm in alarms) {
+        if ([alarm count] && ([alarm valueForKey:@"date"] || [alarm objectForKey:@"structuredLocation"])) {
+            EKAlarm *reminderAlarm = [self createCalendarEventAlarm:alarm];
+            [calendarEventAlarms addObject:reminderAlarm];
+        }
+    }
+    return [calendarEventAlarms copy];
+}
+
 - (EKEvent *)createNewEventInstance {
     EKEvent *event = [EKEvent eventWithEventStore: [self getEventStoreInstance]];
     NSDictionary *options = _eventOptions;
 
+
+    NSArray *alarms = [RCTConvert NSArray:details[_alarms]];
+    NSTimeZone *timeZone = [NSTimeZone timeZoneWithName: [RCTConvert NSString:details[_timeZone]]];
+    NSString *calendarId = [RCTConvert NSString:details[_calendarId]];
+
     event.title = [RCTConvert NSString:options[_title]];
     event.location = options[_location] ? [RCTConvert NSString:options[_location]] : nil;
+    event.calendar = [self.eventStore defaultCalendarForNewEvents];
+    event.timeZone = [NSTimeZone defaultTimeZone];
     if (options[_startDate]) {
         event.startDate = [RCTConvert NSDate:options[_startDate]];
     }
@@ -173,6 +195,19 @@ RCT_EXPORT_METHOD(presentEventEditingDialog:(NSDictionary *)options resolver:(RC
     }
     if (options[_allDay]) {
         event.allDay = [RCTConvert BOOL:options[_allDay]];
+    }
+    if (alarms) {
+        event.alarms = [self createCalendarEventAlarms:alarms];
+    }
+    if (timeZone) {
+        event.timeZone = timeZone;
+    }
+     if (calendarId) {
+        EKCalendar *calendar = [self.eventStore calendarWithIdentifier:calendarId];
+
+        if (calendar) {
+            event.calendar = calendar;
+        }
     }
     return event;
 }
