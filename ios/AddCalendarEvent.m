@@ -209,7 +209,7 @@ RCT_EXPORT_METHOD(presentEventEditingDialog:(NSDictionary *)options resolver:(RC
     EKAlarm *calendarEventAlarm = [self createCalendarEventAlarm:alarm];
     [calendarEvent addAlarm:calendarEventAlarm];
 
-    [self saveEvent:calendarEvent options:options];
+    [self createNewEventInstance:calendarEvent options:options];
 }
 
 - (void)addCalendarEventAlarms:(NSString *)eventId alarms:(NSArray *)alarms options:(NSDictionary *)options
@@ -217,7 +217,7 @@ RCT_EXPORT_METHOD(presentEventEditingDialog:(NSDictionary *)options resolver:(RC
     EKEvent *calendarEvent = (EKEvent *)[[self getEventStoreInstance] calendarItemWithIdentifier:eventId];
     calendarEvent.alarms = [self createCalendarEventAlarms:alarms];
 
-    [self saveEvent:calendarEvent options:options];
+    [self createNewEventInstance:calendarEvent options:options];
 }
 
 - (EKEvent *)createNewEventInstance {
