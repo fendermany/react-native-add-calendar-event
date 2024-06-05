@@ -173,13 +173,13 @@ RCT_EXPORT_METHOD(presentEventEditingDialog:(NSDictionary *)options resolver:(RC
     NSDictionary *options = _eventOptions;
 
 
-    NSArray *alarms = [RCTConvert NSArray:details[_alarms]];
-    NSTimeZone *timeZone = [NSTimeZone timeZoneWithName: [RCTConvert NSString:details[_timeZone]]];
-    NSString *calendarId = [RCTConvert NSString:details[_calendarId]];
+    NSArray *alarms = [RCTConvert NSArray:options[_alarms]];
+    NSTimeZone *timeZone = [NSTimeZone timeZoneWithName: [RCTConvert NSString:options[_timeZone]]];
+    NSString *calendarId = [RCTConvert NSString:options[_calendarId]];
 
     event.title = [RCTConvert NSString:options[_title]];
     event.location = options[_location] ? [RCTConvert NSString:options[_location]] : nil;
-    event.calendar = [self.eventStore defaultCalendarForNewEvents];
+    event.calendar = [[self getEventStoreInstance] defaultCalendarForNewEvents];
     event.timeZone = [NSTimeZone defaultTimeZone];
     if (options[_startDate]) {
         event.startDate = [RCTConvert NSDate:options[_startDate]];
@@ -203,7 +203,7 @@ RCT_EXPORT_METHOD(presentEventEditingDialog:(NSDictionary *)options resolver:(RC
         event.timeZone = timeZone;
     }
      if (calendarId) {
-        EKCalendar *calendar = [self.eventStore calendarWithIdentifier:calendarId];
+        EKCalendar *calendar = [[self getEventStoreInstance] calendarWithIdentifier:calendarId];
 
         if (calendar) {
             event.calendar = calendar;

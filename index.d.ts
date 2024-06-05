@@ -1,10 +1,31 @@
 declare module "react-native-add-calendar-event" {
+  type ISODateString = string;
+
   interface NavigationBarIOS {
     tintColor: string;
     barTintColor: string;
     backgroundColor: string;
     translucent: boolean;
     titleColor: string;
+  }
+
+  /** iOS ONLY - GeoFenced alarm location */
+  interface AlarmStructuredLocation {
+    /** The title of the location. */
+    title: string;
+    /** A value indicating how a location-based alarm is triggered. */
+    proximity: 'enter' | 'leave' | 'none';
+    /** A minimum distance from the core location that would trigger the calendar event's alarm. */
+    radius: number;
+    /** The geolocation coordinates, as an object with latitude and longitude properties. */
+    coords: { latitude: number; longitude: number };
+  }
+
+  interface Alarm<D = ISODateString | number> {
+    /** When saving an event, if a Date is given, an alarm will be set with an absolute date. If a Number is given, an alarm will be set with a relative offset (in minutes) from the start date. When reading an event this will always be an ISO Date string */
+    date: D;
+    /** iOS ONLY - The location to trigger an alarm. */
+    structuredLocation?: AlarmStructuredLocation;
   }
 
   interface CreateOptions {
@@ -28,6 +49,13 @@ declare module "react-native-add-calendar-event" {
      */
     notes?: string;
     navigationBarIOS?: NavigationBarIOS;
+
+    /** iOS ONLY - The time zone associated with the event */
+    timeZone?: string;
+    /** Unique id for the calendar where the event will be saved. Defaults to the device's default  calendar. */
+    calendarId?: string;
+    /** The alarms associated with the calendar event, as an array of alarm objects. */
+    alarms?: Array<Alarm<ISODateString | number>>;
   }
 
   /**
