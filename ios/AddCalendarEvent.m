@@ -156,6 +156,41 @@ RCT_EXPORT_METHOD(presentEventEditingDialog:(NSDictionary *)options resolver:(RC
     return maybeEvent;
 }
 
+- (EKAlarm *)createCalendarEventAlarm:(NSDictionary *)alarm
+{
+    EKAlarm *calendarEventAlarm = nil;
+    id alarmDate = [alarm valueForKey:@"date"];
+
+    if ([alarmDate isKindOfClass:[NSString class]]) {
+        calendarEventAlarm = [EKAlarm alarmWithAbsoluteDate:[RCTConvert NSDate:alarmDate]];
+    } else if ([alarmDate isKindOfClass:[NSNumber class]]) {
+        int minutes = [alarmDate intValue];
+        calendarEventAlarm = [EKAlarm alarmWithRelativeOffset:(60 * minutes)];
+    } else {
+        calendarEventAlarm = [[EKAlarm alloc] init];
+    }
+
+    if ([alarm objectForKey:@"structuredLocation"] && [[alarm objectForKey:@"structuredLocation"] count]) {
+        NSDictionary *locationOptions = [alarm valueForKey:@"structuredLocation"];
+        NSDictionary *geo = [locationOptions valueForKey:@"coords"];
+        CLLocation *geoLocation = [[CLLocation alloc] initWithLatitude:[[geo valueForKey:@"latitude"] doubleValue]
+                                                             longitude:[[geo valueForKey:@"longitude"] doubleValue]];
+
+        calendarEventAlarm.structuredLocation = [EKStructuredLocation locationWithTitle:[locationOptions valueForKey:@"title"]];
+        calendarEventAlarm.structuredLocation.geoLocation = geoLocation;
+        calendarEventAlarm.structuredLocation.radius = [[locationOptions valueForKey:@"radius"] doubleValue];
+
+        if ([[locationOptions valueForKey:@"proximity"] isEqualToString:@"enter"]) {
+            calendarEventAlarm.proximity = EKAlarmProximityEnter;
+        } else if ([[locationOptions valueForKey:@"proximity"] isEqualToString:@"leave"]) {
+            calendarEventAlarm.proximity = EKAlarmProximityLeave;
+        } else {
+            calendarEventAlarm.proximity = EKAlarmProximityNone;
+        }
+    }
+    return calendarEventAlarm;
+}
+
 - (NSArray *)createCalendarEventAlarms:(NSArray *)alarms
 {
     NSMutableArray *calendarEventAlarms = [[NSMutableArray alloc] init];
@@ -166,6 +201,23 @@ RCT_EXPORT_METHOD(presentEventEditingDialog:(NSDictionary *)options resolver:(RC
         }
     }
     return [calendarEventAlarms copy];
+}
+
+- (void)addCalendarEventAlarm:(NSString *)eventId alarm:(NSDictionary *)alarm options:(NSDictionary *)options
+{
+    EKEvent *calendarEvent = (EKEvent *)[[self getEventStoreInstance] calendarItemWithIdentifier:eventId];
+    EKAlarm *calendarEventAlarm = [self createCalendarEventAlarm:alarm];
+    [calendarEvent addAlarm:calendarEventAlarm];
+
+    [self saveEvent:calendarEvent options:options];
+}
+
+- (void)addCalendarEventAlarms:(NSString *)eventId alarms:(NSArray *)alarms options:(NSDictionary *)options
+{
+    EKEvent *calendarEvent = (EKEvent *)[[self getEventStoreInstance] calendarItemWithIdentifier:eventId];
+    calendarEvent.alarms = [self createCalendarEventAlarms:alarms];
+
+    [self saveEvent:calendarEvent options:options];
 }
 
 - (EKEvent *)createNewEventInstance {
